@@ -232,7 +232,7 @@ If no line items are found on this page, return:
         # Generate content with image
         response = model.generate_content(
             [prompt, image_part],
-            generation_config=genai.types.GenerationConfig(
+            generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 max_output_tokens=4096
             )
