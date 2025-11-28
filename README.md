@@ -102,7 +102,8 @@ Extract line items from a bill document.
                 ]
             }
         ],
-        "total_item_count": 1
+        "total_item_count": 1,
+        "total_bill_amount": 500.00
     }
 }
 ```
