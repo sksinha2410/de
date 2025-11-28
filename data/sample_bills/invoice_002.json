@@ -1,0 +1,64 @@
+{
+  "bill_id": "INV-2024-002",
+  "vendor_name": "Tech Hardware Co.",
+  "date": "2024-01-20",
+  "currency": "USD",
+  "page_count": 3,
+  "line_items": [
+    {
+      "description": "USB-C Hub 7-in-1",
+      "quantity": 10,
+      "unit_price": 35.00,
+      "amount": 350.00,
+      "category": "Hardware"
+    },
+    {
+      "description": "Wireless Mouse",
+      "quantity": 15,
+      "unit_price": 25.00,
+      "amount": 375.00,
+      "category": "Hardware"
+    },
+    {
+      "description": "HDMI Cable 6ft",
+      "quantity": 20,
+      "unit_price": 12.00,
+      "amount": 240.00,
+      "category": "Cables"
+    },
+    {
+      "description": "USB-C to USB-A Adapter",
+      "quantity": 25,
+      "unit_price": 8.00,
+      "amount": 200.00,
+      "category": "Cables"
+    },
+    {
+      "description": "Webcam HD 1080p",
+      "quantity": 8,
+      "unit_price": 65.00,
+      "amount": 520.00,
+      "category": "Hardware"
+    },
+    {
+      "description": "Keyboard - Mechanical",
+      "quantity": 5,
+      "unit_price": 89.00,
+      "amount": 445.00,
+      "category": "Hardware"
+    }
+  ],
+  "sub_totals": [
+    {
+      "label": "Hardware Sub-total",
+      "amount": 1690.00,
+      "line_item_refs": [0, 1, 4, 5]
+    },
+    {
+      "label": "Cables Sub-total",
+      "amount": 440.00,
+      "line_item_refs": [2, 3]
+    }
+  ],
+  "final_total": 2130.00
+}
