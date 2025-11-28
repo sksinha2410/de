@@ -1,6 +1,6 @@
 # Bill Data Extraction API
 
-A Flask-based API that extracts line item details from bills/invoices (PDF or images) using GPT-4 Vision for OCR and data extraction.
+A Flask-based API that extracts line item details from bills/invoices (PDF or images) using Gemini Vision for OCR and data extraction.
 
 ## Features
 
@@ -13,7 +13,7 @@ A Flask-based API that extracts line item details from bills/invoices (PDF or im
 ## Prerequisites
 
 - Python 3.12+
-- OpenAI API key with access to GPT-4 Vision
+- Google Gemini API key with access to Gemini Vision models
 - Poppler (for PDF processing)
 
 ## Installation
@@ -45,7 +45,7 @@ pip install -r requirements.txt
 5. Configure environment variables:
 ```bash
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add your GEMINI_API_KEY
 ```
 
 6. Run the application:
@@ -62,7 +62,7 @@ docker build -t bill-extraction-api .
 
 2. Run the container:
 ```bash
-docker run -p 5000:5000 -e OPENAI_API_KEY=your_api_key bill-extraction-api
+docker run -p 5000:5000 -e GEMINI_API_KEY=your_api_key bill-extraction-api
 ```
 
 ## API Endpoints
@@ -131,7 +131,7 @@ Health check endpoint.
 
 2. **PDF Processing**: For PDFs, we use `pdf2image` library to convert each page to an image for processing.
 
-3. **GPT-4 Vision Analysis**: Each page image is sent to OpenAI's GPT-4 Vision model with a carefully crafted prompt that:
+3. **Gemini Vision Analysis**: Each page image is sent to Google's Gemini Vision model with a carefully crafted prompt that:
    - Extracts all line items with their details
    - Identifies the page type (Bill Detail, Final Bill, Pharmacy)
    - Avoids double counting by not including subtotals/totals as line items
@@ -142,8 +142,7 @@ Health check endpoint.
 
 ### Key Design Decisions
 
-- **GPT-4 Vision (gpt-4o)**: Chosen for its superior OCR and document understanding capabilities
-- **High Detail Mode**: Images are processed in "high" detail mode for better accuracy
+- **Gemini Vision (gemini-1.5-flash)**: Chosen for its superior OCR and document understanding capabilities
 - **Low Temperature (0.1)**: Used to ensure consistent, deterministic extractions
 - **Structured Prompting**: The prompt explicitly instructs the model on what to extract and what to avoid
 
@@ -151,8 +150,8 @@ Health check endpoint.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | Your OpenAI API key | Required |
-| `OPENAI_MODEL` | OpenAI model to use | gpt-4o |
+| `GEMINI_API_KEY` | Your Google Gemini API key | Required |
+| `GEMINI_MODEL` | Gemini model to use | gemini-1.5-flash |
 | `PDF_DPI` | DPI for PDF conversion | 100 |
 | `ALLOWED_DOMAINS` | Comma-separated list of allowed domains | (all public URLs) |
 | `PORT` | Server port | 5000 |
@@ -192,7 +191,7 @@ gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
 
 ## Limitations
 
-- Requires valid OpenAI API key with GPT-4 Vision access
+- Requires valid Google Gemini API key with Gemini Vision access
 - Processing time depends on document size and number of pages
 - API costs depend on token usage (tracked in response)
 

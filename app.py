@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 from PIL import Image
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 from pdf2image import convert_from_bytes
 
@@ -26,13 +26,13 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 PDF_DPI = int(os.getenv("PDF_DPI", "100"))
 # Allowed domains for document URLs (comma-separated, empty means allow all public URLs)
 ALLOWED_DOMAINS = os.getenv("ALLOWED_DOMAINS", "").split(",") if os.getenv("ALLOWED_DOMAINS") else []
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize Gemini client
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Token tracking
 class TokenTracker:
@@ -43,9 +43,12 @@ class TokenTracker:
     
     def add_usage(self, usage):
         if usage:
-            self.total_tokens += usage.total_tokens
-            self.input_tokens += usage.prompt_tokens
-            self.output_tokens += usage.completion_tokens
+            prompt_tokens = getattr(usage, 'prompt_token_count', 0) or 0
+            candidates_tokens = getattr(usage, 'candidates_token_count', 0) or 0
+            total = getattr(usage, 'total_token_count', 0) or (prompt_tokens + candidates_tokens)
+            self.input_tokens += prompt_tokens
+            self.output_tokens += candidates_tokens
+            self.total_tokens += total
     
     def get_usage(self):
         return {
@@ -172,7 +175,7 @@ def image_to_base64(image):
 
 
 def extract_line_items_from_image(image_base64, page_no, token_tracker):
-    """Use GPT-4 Vision to extract line items from a single page image."""
+    """Use Gemini Vision to extract line items from a single page image."""
     
     prompt = """Analyze this bill/invoice page and extract ALL line items with their details.
 
@@ -214,35 +217,33 @@ If no line items are found on this page, return:
 }"""
 
     try:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": prompt
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{image_base64}",
-                                "detail": "high"
-                            }
-                        }
-                    ]
-                }
-            ],
-            max_tokens=4096,
-            temperature=0.1
+        # Initialize the Gemini model
+        model = genai.GenerativeModel(GEMINI_MODEL)
+        
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_base64)
+        
+        # Create the image part for Gemini
+        image_part = {
+            "mime_type": "image/png",
+            "data": image_bytes
+        }
+        
+        # Generate content with image
+        response = model.generate_content(
+            [prompt, image_part],
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=4096
+            )
         )
         
         # Track token usage
-        token_tracker.add_usage(response.usage)
+        if hasattr(response, 'usage_metadata'):
+            token_tracker.add_usage(response.usage_metadata)
         
         # Parse response
-        content = response.choices[0].message.content.strip()
+        content = response.text.strip()
         
         # Remove markdown code blocks if present
         if content.startswith('```'):
