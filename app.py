@@ -340,13 +340,21 @@ def extract_bill_data():
         # Calculate total item count
         total_item_count = sum(len(page['bill_items']) for page in pagewise_line_items)
         
+        # Calculate total bill amount
+        total_bill_amount = sum(
+            item['item_amount']
+            for page in pagewise_line_items
+            for item in page['bill_items']
+        )
+        
         # Build response
         response = {
             "is_success": True,
             "token_usage": token_tracker.get_usage(),
             "data": {
                 "pagewise_line_items": pagewise_line_items,
-                "total_item_count": total_item_count
+                "total_item_count": total_item_count,
+                "total_bill_amount": total_bill_amount
             }
         }
         
