@@ -7,6 +7,7 @@ import re
 import socket
 import ipaddress
 import requests
+import re
 from urllib.parse import urlparse
 from PIL import Image
 from flask import Flask, request, jsonify
@@ -105,6 +106,24 @@ def validate_url(url):
         raise
     except Exception as e:
         raise ValueError(f"Invalid URL: {str(e)}")
+
+def convert_google_drive_url(url: str) -> str:
+    """
+    Convert common Google Drive sharing URLs to the direct download 'uc?export=download&id=...' URL.
+    Returns original url if it doesn't look like a Drive share link.
+    """
+    # Examples:
+    # https://drive.google.com/file/d/<id>/view?usp=sharing
+    # https://drive.google.com/open?id=<id>
+    m = re.search(r'/file/d/([a-zA-Z0-9_-]+)', url)
+    if m:
+        file_id = m.group(1)
+        return f'https://drive.google.com/uc?export=download&id={file_id}'
+    m = re.search(r'drive.google.com.*?id=([a-zA-Z0-9_-]+)', url)
+    if m:
+        file_id = m.group(1)
+        return f'https://drive.google.com/uc?export=download&id={file_id}'
+    return url
 
 
 def download_document(url):
@@ -351,5 +370,5 @@ def health_check():
 
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=os.getenv('DEBUG', 'False').lower() == 'true')
